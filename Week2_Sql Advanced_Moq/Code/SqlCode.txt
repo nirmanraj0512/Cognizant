@@ -1,0 +1,64 @@
+Respected Sir/Ma'am I can't install Sql Management Software So I have done the Hand on the MYSql.
+
+
+
+-- Step 1: Drop table if it exists
+DROP TABLE IF EXISTS Products;
+
+-- Step 2: Create the Products table
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100),
+    Category VARCHAR(50),
+    Price DECIMAL(10,2)
+);
+
+-- Step 3: Insert sample data
+INSERT INTO Products (ProductID, ProductName, Category, Price)
+VALUES
+(1, 'iPhone 15', 'Smartphones', 1200),
+(2, 'Galaxy S23', 'Smartphones', 1100),
+(3, 'Pixel 8', 'Smartphones', 1100),
+(4, 'Nokia G20', 'Smartphones', 200),
+(5, 'Dell XPS 15', 'Laptops', 2000),
+(6, 'MacBook Air', 'Laptops', 1800),
+(7, 'HP Pavilion', 'Laptops', 1800),
+(8, 'Lenovo IdeaPad', 'Laptops', 1200);
+
+-- Step 4: Show all ranking functions
+SELECT 
+    ProductID,
+    ProductName,
+    Category,
+    Price,
+    ROW_NUMBER() OVER (PARTITION BY Category ORDER BY Price DESC) AS RowNum,
+    RANK() OVER (PARTITION BY Category ORDER BY Price DESC) AS RankNum,
+    DENSE_RANK() OVER (PARTITION BY Category ORDER BY Price DESC) AS DenseRankNum
+FROM Products;
+
+-- Step 5: Top 3 using ROW_NUMBER()
+SELECT *
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY Category ORDER BY Price DESC) AS RowNum
+    FROM Products
+) AS Ranked
+WHERE RowNum <= 3;
+
+-- Step 6: Top 3 using RANK()
+SELECT *
+FROM (
+    SELECT *,
+           RANK() OVER (PARTITION BY Category ORDER BY Price DESC) AS RankNum
+    FROM Products
+) AS Ranked
+WHERE RankNum <= 3;
+
+-- Step 7: Top 3 using DENSE_RANK()
+SELECT *
+FROM (
+    SELECT *,
+           DENSE_RANK() OVER (PARTITION BY Category ORDER BY Price DESC) AS DenseRankNum
+    FROM Products
+) AS Ranked
+WHERE DenseRankNum <= 3;

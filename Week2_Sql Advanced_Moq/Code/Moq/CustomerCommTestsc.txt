@@ -1,0 +1,31 @@
+using NUnit.Framework;
+using Moq;
+using CustomerCommLib;
+
+namespace CustomerCommLib.Tests
+{
+    [TestFixture]  // ✅ Correct spelling
+    public class CustomerCommTests
+    {
+        [Test]
+        public void SendMailToCustomer_ReturnsTrue_WhenMailIsSent()
+        {
+            // Arrange
+            var mockMailSender = new Mock<IMailSender>();
+
+            // Setup: when SendMail is called, return true
+            mockMailSender
+                .Setup(m => m.SendMail(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(true);
+
+            // Inject mock into CustomerComm
+            var customerComm = new CustomerComm(mockMailSender.Object);
+
+            // Act
+            var result = customerComm.SendMailToCustomer();
+
+            // Assert
+            Assert.IsTrue(result); // Test should pass if mock returns true
+        }
+    }
+}
