@@ -1,0 +1,59 @@
+//Model/Category.cs
+using System.Collections.Generic;
+
+namespace RetailInventory.Models
+{
+    public class Category
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+        public List<Product> Products { get; set; } = new List<Product>();
+    }
+}
+
+
+//Model/Product.cs
+namespace RetailInventory.Models
+{
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
+    }
+}
+
+
+//AppDbContext.cs
+using Microsoft.EntityFrameworkCore;
+using RetailInventory.Models;
+
+namespace RetailInventory
+{
+    public class AppDbContext : DbContext
+    {
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer("Server");
+        }
+    }
+}
+
+
+
+//appsettings.json
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=RetailDb;Trusted_Connection=True;"
+  }
+}
+
+
