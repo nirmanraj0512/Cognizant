@@ -1,0 +1,97 @@
+ In ConfigureServices:
+
+ string securityKey = "**************";
+var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(x =>
+{
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "mySystem",
+        ValidAudience = "myUsers",
+        IssuerSigningKey = symmetricSecurityKey
+    };
+});
+
+
+Controllers/AuthController.cs
+
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+[AllowAnonymous]
+[Route("api/[controller]")]
+[ApiController]
+public class AuthController : ControllerBase
+{
+    [HttpGet("GetToken")]
+    public IActionResult GetToken()
+    {
+        var token = GenerateJSONWebToken(101, "Admin");
+        return Ok(token);
+    }
+
+    private string GenerateJSONWebToken(int userId, string userRole)
+    {
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("mysuperdupersecret"));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Role, userRole),
+            new Claim("UserId", userId.ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: "mySystem",
+            audience: "myUsers",
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(2), // Can be adjusted
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
+
+
+
+Filters/CustomAuthFilter.cs
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace YourAppNamespace.Filters
+{
+    public class CustomAuthFilter : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            // Check if Authorization header exists
+            if (!context.HttpContext.Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                context.Result = new BadRequestObjectResult("Invalid request - No Auth token");
+                return;
+            }
+
+            // Check if it contains 'Bearer'
+            if (!authHeader.ToString().StartsWith("Bearer", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Result = new BadRequestObjectResult("Invalid request - Token present but Bearer unavailable");
+            }
+        }
+    }
+}

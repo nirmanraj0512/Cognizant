@@ -1,0 +1,107 @@
+Producer App
+
+
+using Confluent.Kafka;
+
+Console.WriteLine("Kafka Chat - Producer");
+var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
+
+using var producer = new ProducerBuilder<Null, string>(config).Build();
+
+while (true)
+{
+    Console.Write("You: ");
+    var message = Console.ReadLine();
+    await producer.ProduceAsync("chat-topic", new Message<Null, string> { Value = message });
+    Console.WriteLine($"Sent: {message}");
+}
+
+
+
+Receiver App
+
+using Confluent.Kafka;
+
+Console.WriteLine("Kafka Chat - Consumer");
+var config = new ConsumerConfig
+{
+    BootstrapServers = "localhost:9092",
+    GroupId = "chat-group",
+    AutoOffsetReset = AutoOffsetReset.Earliest
+};
+
+using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
+consumer.Subscribe("chat-topic");
+
+while (true)
+{
+    var consumeResult = consumer.Consume();
+    Console.WriteLine($"Received: {consumeResult.Message.Value}");
+}
+
+GUI
+FROM1.cs
+
+using Confluent.Kafka;
+using System;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+public partial class Form1 : Form
+{
+    private IProducer<Null, string> producer;
+    private IConsumer<Ignore, string> consumer;
+    private const string Topic = "chat-topic";
+
+    public Form1()
+    {
+        InitializeComponent();
+        SetupKafka();
+        StartConsumerLoop();
+    }
+
+    private void SetupKafka()
+    {
+        var configProducer = new ProducerConfig { BootstrapServers = "localhost:9092" };
+        producer = new ProducerBuilder<Null, string>(configProducer).Build();
+
+        var configConsumer = new ConsumerConfig
+        {
+            BootstrapServers = "localhost:9092",
+            GroupId = Guid.NewGuid().ToString(),
+            AutoOffsetReset = AutoOffsetReset.Earliest
+        };
+
+        consumer = new ConsumerBuilder<Ignore, string>(configConsumer).Build();
+        consumer.Subscribe(Topic);
+    }
+
+    private async void btnSend_Click(object sender, EventArgs e)
+    {
+        var message = txtInput.Text;
+        await producer.ProduceAsync(Topic, new Message<Null, string> { Value = message });
+        txtInput.Clear();
+    }
+
+    private void StartConsumerLoop()
+    {
+        Task.Run(() =>
+        {
+            while (true)
+            {
+                var cr = consumer.Consume();
+                Invoke(new Action(() =>
+                {
+                    txtChat.AppendText($"Received: {cr.Message.Value}{Environment.NewLine}");
+                }));
+            }
+        });
+    }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        producer.Dispose();
+        consumer.Dispose();
+        base.OnFormClosed(e);
+    }
+}
