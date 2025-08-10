@@ -1,0 +1,32 @@
+mkdir git-full-lab
+cd git-full-lab
+git init
+echo "Initial content" > readMe.txt
+git add readMe.txt
+git commit -m "Initial Commit"
+BRANCH=$(git symbolic-ref --short HEAD)
+git status
+git branch GitWork
+git checkout GitWork
+echo "<message>Hello from GitWork branch</message>" > hello.xml
+echo "<update>Second line from GitWork branch</update>" >> hello.xml
+git add hello.xml
+git commit -m "Add hello.xml in GitWork branch"
+git checkout $BRANCH
+echo "<message>Hello from $BRANCH branch</message>" > hello.xml
+git add hello.xml
+git commit -m "Add hello.xml in $BRANCH branch"
+git log --oneline --graph --decorate --all
+git diff $BRANCH GitWork
+git merge GitWork
+cat hello.xml
+echo "<message>Hello from $BRANCH branch</message>" > hello.xml
+echo "<message>Hello from GitWork branch</message>" >> hello.xml
+git add hello.xml
+git commit -m "Resolve merge conflict between $BRANCH and GitWork"
+echo "*.orig" >> .gitignore
+git add .gitignore
+git commit -m "Ignore backup files"
+git branch -a
+git branch -d GitWork
+git log --oneline --graph --decorate

@@ -1,0 +1,13 @@
+mkdir git-ignore-demo
+cd git-ignore-demo
+git init
+mkdir log
+echo "This is a root log file" > sample.log
+echo "This is inside log folder" > log/app.log
+touch .gitignore
+echo "*.log" >> .gitignore
+echo "log/" >> .gitignore
+git status
+git add .gitignore
+git commit -m "Ignore .log files and log folder"
+git status

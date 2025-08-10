@@ -1,0 +1,7 @@
+git checkout master
+git status
+git branch -a
+git pull origin master
+git add .
+git commit -m "Changes from Git-T03-HOL_002"
+git push origin master

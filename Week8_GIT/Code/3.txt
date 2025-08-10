@@ -1,0 +1,18 @@
+########## Branching 
+git branch GitNewBranch
+git branch -a
+git checkout GitNewBranch
+echo "This is file1 for GitNewBranch" > file1.txt
+echo "This is file2 for GitNewBranch" > file2.txt
+git add file1.txt file2.txt
+git commit -m "Add file1 and file2 in GitNewBranch"
+git status
+
+############## Merging
+git checkout main
+git diff main GitNewBranch
+git difftool main GitNewBranch
+git merge GitNewBranch
+git log --oneline --graph --decorate
+git branch -d GitNewBranch
+git status
